@@ -1,4 +1,10 @@
+/**
+ * cap. 7.5
+ */
+
 package com.algaworks.algamoney.config;
+
+import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -9,9 +15,13 @@ import org.springframework.security.oauth2.config.annotation.configurers.ClientD
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+
+import com.algaworks.algamoney.config.token.CustomTokenEnhancer;
 
 @Configuration
 @EnableAuthorizationServer
@@ -47,15 +57,21 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
 	}
 	
+	
+	//Com o cap. 7.5 vamos passar agora o tokenEnhancer com o accessTokenConverter
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+		tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer(), accessTokenConverter()));
+		
 		endpoints
 			.tokenStore(tokenStore())	//Armazena o token na memória.
-			.accessTokenConverter(accessTokenConverter())	//conversor de token
+			//.accessTokenConverter(accessTokenConverter())	//conversor de token
+			.tokenEnhancer(tokenEnhancerChain)
 			.reuseRefreshTokens(false)	//A cada AccessToekn solicitado um novo refreshToken também é enviado.
 			//Autenticação para validar usuario e senha, retornando usuario padrão do sistema com sua senha e lista de permissões.
 			//Para validação da senha que está encriptada com BCrypt usa o método passwordEncoder()
-			.userDetailsService(this.userDetailsService)
+			//.userDetailsService(this.userDetailsService)
 			.authenticationManager(authenticationManager);	//valida o token
 	}
 
@@ -70,5 +86,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	public TokenStore tokenStore() {
 //		return new InMemoryTokenStore();
 		return new JwtTokenStore(accessTokenConverter());
+	}
+	
+	@Bean
+	public TokenEnhancer tokenEnhancer() {
+		return new CustomTokenEnhancer();
 	}
 }
