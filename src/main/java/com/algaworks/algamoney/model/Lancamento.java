@@ -3,6 +3,7 @@ package com.algaworks.algamoney.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -55,7 +56,7 @@ public class Lancamento {
 	private Categoria categoria;
 	
 	@NotNull
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.REFRESH)
 	@JoinColumn(name="codigo_pessoa")
 	private Pessoa pessoa;
 
