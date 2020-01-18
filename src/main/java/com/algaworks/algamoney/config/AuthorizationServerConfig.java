@@ -1,4 +1,5 @@
 /**
+ * alterado em cap. 6.11
  * cap. 7.5
  */
 
@@ -11,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
-//import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -33,8 +34,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	
-//	@Autowired
-//	private UserDetailsService userDetailsService;
+	@Autowired
+	private UserDetailsService userDetailsService;
 	
 	//Configura a autorização do cliente angular.
 	@Override
@@ -46,8 +47,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		.secret("$2a$10$G1j5Rf8aEEiGc/AET9BA..xRR.qCpOUzBZoJd8ygbGy6tb3jsMT9G") 	//Senha @ngul@r0 codificada com Gerador de senha BCrypt.
 		.scopes("read", "write")
 		.authorizedGrantTypes("password", "refresh_token")	//Usaremos o grantType refresh_token para nos fornecer um accessToken
-		.accessTokenValiditySeconds(1800)
-		.refreshTokenValiditySeconds(3600 * 24)
+		.accessTokenValiditySeconds(30)
+		.refreshTokenValiditySeconds(600)
 		//Add cliente mobile com restrição de escopo somente read.
 		.and()
 		.withClient("mobile")
@@ -68,12 +69,12 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		
 		endpoints
 			.tokenStore(tokenStore())	//Armazena o token na memória.
-			//.accessTokenConverter(accessTokenConverter())	//conversor de token
+			.accessTokenConverter(accessTokenConverter())	//conversor de token
 			.tokenEnhancer(tokenEnhancerChain)
 			.reuseRefreshTokens(false)	//A cada AccessToekn solicitado um novo refreshToken também é enviado.
 			//Autenticação para validar usuario e senha, retornando usuario padrão do sistema com sua senha e lista de permissões.
 			//Para validação da senha que está encriptada com BCrypt usa o método passwordEncoder()
-			//.userDetailsService(this.userDetailsService)
+			.userDetailsService(this.userDetailsService)
 			.authenticationManager(authenticationManager);	//valida o token
 	}
 
