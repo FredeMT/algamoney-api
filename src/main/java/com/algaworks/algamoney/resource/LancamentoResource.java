@@ -1,9 +1,11 @@
 /**
  * cap 5.2, cap 5.7 Filtro Pesquisar, cap. 5.9 Paginação em pesquisar, cap. 7.1 Projection
+ * cap. 22.3 dados estatísticos de lançamento por categoria
  */
 
 package com.algaworks.algamoney.resource;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.algaworks.algamoney.dto.LancamentoEstatisticaCategoria;
+import com.algaworks.algamoney.dto.LancamentoEstatisticaDia;
 import com.algaworks.algamoney.event.RecursoCriadoEvent;
 import com.algaworks.algamoney.exceptionHandler.AlgamoneyExceptionHandler.Erro;
 import com.algaworks.algamoney.model.Lancamento;
@@ -61,6 +65,21 @@ public class LancamentoResource {
 		return lancamentoRepository.findAll();
 	}
 **/
+
+	@GetMapping("estatisticas/por-dia/{mesReferencia}")
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
+	public List<LancamentoEstatisticaDia> porDia(@PathVariable String mesReferencia) {
+		//default, ISO_LOCAL_DATE
+        LocalDate localDate = LocalDate.parse(mesReferencia);
+		return this.lancamentoRepository.porDia(localDate);
+	}
+
+	@GetMapping("estatisticas/por-categoria")
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
+	public List<LancamentoEstatisticaCategoria> porCategoria() {
+		return this.lancamentoRepository.porCategoria(LocalDate.of(2018, 03, 10));
+	}
+	
 	@GetMapping("/{codigo}")
 	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
 	public ResponseEntity<Lancamento> buscarPeloCodigo(@PathVariable Long codigo) {			
