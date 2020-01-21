@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.algaworks.algamoney.dto.LancamentoEstatisticaCategoria;
 import com.algaworks.algamoney.dto.LancamentoEstatisticaDia;
+import com.algaworks.algamoney.dto.LancamentoEstatisticaPessoa;
 import com.algaworks.algamoney.model.Categoria_;
 import com.algaworks.algamoney.model.Lancamento;
 import com.algaworks.algamoney.model.Lancamento_;
@@ -201,6 +202,33 @@ public class LancamentoRepositoryImpl implements LancamentoRepositoryQuery{
 				root.get(Lancamento_.dataVencimento));
 		
 		TypedQuery<LancamentoEstatisticaDia> typedQuery = manager.createQuery(criteriaQuery);
+		return typedQuery.getResultList();
+	}
+
+	@Override
+	public List<LancamentoEstatisticaPessoa> porPessoa(LocalDate inicio, LocalDate fim) {
+		CriteriaBuilder criteriaBuilder = manager.getCriteriaBuilder();
+		CriteriaQuery<LancamentoEstatisticaPessoa> criteriaQuery = criteriaBuilder
+				.createQuery(LancamentoEstatisticaPessoa.class);
+		//Aqui vamos buscar os dados na entidade Lancamento
+		Root<Lancamento> root = criteriaQuery.from(Lancamento.class);
+		/* Aqui vamos mostrar para criteria do JPA como o objeto LancamentoEstatisticaPessoa será construido,
+		 * em que iremos somar os valores por pessoa. */
+		criteriaQuery.select(criteriaBuilder.construct(LancamentoEstatisticaPessoa.class, 
+				root.get(Lancamento_.tipo),
+				root.get(Lancamento_.pessoa),
+				criteriaBuilder.sum(root.get(Lancamento_.valor))));
+
+		criteriaQuery.where(
+				criteriaBuilder.greaterThanOrEqualTo(root.get(Lancamento_.dataVencimento),
+						inicio),
+				criteriaBuilder.lessThanOrEqualTo(root.get(Lancamento_.dataVencimento),
+						fim));
+		//agrupar por tipo e dataVencimento
+		criteriaQuery.groupBy(root.get(Lancamento_.tipo),
+				root.get(Lancamento_.pessoa));
+		
+		TypedQuery<LancamentoEstatisticaPessoa> typedQuery = manager.createQuery(criteriaQuery);
 		return typedQuery.getResultList();
 	}
 
