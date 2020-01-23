@@ -18,6 +18,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name="lancamento")
@@ -59,6 +60,12 @@ public class Lancamento {
 	@ManyToOne(cascade = CascadeType.REFRESH)
 	@JoinColumn(name="codigo_pessoa")
 	private Pessoa pessoa;
+	
+	//Cap. 22.19
+	@JsonIgnore
+	public boolean isReceita() {
+		return TipoLancamento.RECEITA.equals(tipo);
+	}
 
 	public Long getCodigo() {
 		return codigo;
