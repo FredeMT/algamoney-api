@@ -1,5 +1,6 @@
 /**
  * Cap 4.3 e 4.4 (atualizaçao parcial)
+ * cap. 22.26 - codigo contatos
  */
 package com.algaworks.algamoney.service;
 
@@ -23,8 +24,13 @@ public class PessoaService {
 		// método de  AlgamoneyExceptionHandler retornando um erro 404
 		Pessoa pessoaSalva = this.pessoaRepository.findById(codigo)
 				.orElseThrow(() -> new EmptyResultDataAccessException(1));
+		//
+		pessoaSalva.getContatos().clear();
+		pessoaSalva.getContatos().addAll(pessoa.getContatos());
+		pessoaSalva.getContatos().forEach(c -> c.setPessoa(pessoaSalva));
+		
 		//Copia os campos do objeto de origem pesso para pessoaSalva, ignorando o campo codigo.
-		BeanUtils.copyProperties(pessoa, pessoaSalva, "codigo");
+		BeanUtils.copyProperties(pessoa, pessoaSalva, "codigo", "contatos");
 		//Salva/atualiza os registros no banco de dados
 		return this.pessoaRepository.save(pessoaSalva);
 	}
