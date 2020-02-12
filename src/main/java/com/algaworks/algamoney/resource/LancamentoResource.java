@@ -5,6 +5,7 @@
 
 package com.algaworks.algamoney.resource;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +36,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.algaworks.algamoney.dto.Anexo;
 import com.algaworks.algamoney.dto.LancamentoEstatisticaCategoria;
 import com.algaworks.algamoney.dto.LancamentoEstatisticaDia;
 import com.algaworks.algamoney.event.RecursoCriadoEvent;
@@ -46,6 +49,7 @@ import com.algaworks.algamoney.repository.filter.LancamentoFilter;
 import com.algaworks.algamoney.repository.projection.ResumoLancamento;
 import com.algaworks.algamoney.service.LancamentoService;
 import com.algaworks.algamoney.service.exception.PessoaInexistenteException;
+import com.algaworks.algamoney.storage.S3;
 
 @RestController
 @RequestMapping("/lancamentos")
@@ -62,6 +66,9 @@ public class LancamentoResource {
 	
 	@Autowired
 	private MessageSource messageSource;
+	
+	@Autowired
+	private S3 s3;
 /**	
 	@GetMapping
 	public List<Lancamento> listar() {
@@ -69,7 +76,24 @@ public class LancamentoResource {
 		return lancamentoRepository.findAll();
 	}
 **/
-	
+/*	
+	@PostMapping("/anexo")
+	@PreAuthorize("hasAuthority('ROLE_CADASTRAR_LANCAMENTO') and #oauth2.hasScope('write')")
+	public String uploadAnexo(@RequestParam MultipartFile anexo) throws IOException {
+		OutputStream out = new FileOutputStream("/home/frede/Documentos/anexo--" + 
+				anexo.getOriginalFilename());
+		out.write(anexo.getBytes());
+		out.close();
+		return "ok";
+	}
+*/
+	@PostMapping("/anexo")
+	@PreAuthorize("hasAuthority('ROLE_CADASTRAR_LANCAMENTO') and #oauth2.hasScope('write')")
+	public Anexo uploadAnexo(@RequestParam MultipartFile anexo) throws IOException {
+		String nome = s3.salvarTemporariamente(anexo);
+		return new Anexo(nome, s3.configurarUrl(nome));
+	}
+
 	@GetMapping("relatorios/por-pessoa")
 	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
 	public ResponseEntity<byte[]> relatorioPorPessoa(
